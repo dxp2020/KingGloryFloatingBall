@@ -1,0 +1,12 @@
+<com.changf.drag.view.FloatingLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:orientation="vertical">
+
+    <com.changf.drag.view.FloatingView
+        android:id="@+id/fw_floating_window"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</com.changf.drag.view.FloatingLayout>
