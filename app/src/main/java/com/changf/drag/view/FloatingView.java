@@ -91,7 +91,7 @@ public class FloatingView extends View {
     private void moveFloatingView(MotionEvent event) {
         //控件内
         if (event.getX()>0 && event.getX()<radius*4&&event.getY()>0 && event.getY()<radius*4) {
-            Log.e(TAG,"在圆内");
+//            Log.e(TAG,"在圆内");
             //超出范围则限定大圆的边在小圆的圆心位置
             if(event.getX()>(inner_circle_x+radius)) {
                 outer_circle_x = inner_circle_x + radius;
@@ -109,7 +109,7 @@ public class FloatingView extends View {
             }
             //控件外
         } else {
-            Log.e(TAG,"在圆外");
+//            Log.e(TAG,"在圆外");
             //按下的点与圆点之间的角度
             double angle = Math.atan((event.getY()-outer_circle_y)/(event.getX()-outer_circle_x));
             double intevelY = Math.sin(angle)*radius;
