@@ -11,4 +11,20 @@
             android:layout_centerInParent="true"
             android:text="启动"
             />
+        <Button
+            android:id="@+id/tv_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/tv_start"
+            android:text="结束"
+            />
+        <Button
+            android:id="@+id/tv_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_start"
+            android:text="测试"
+            android:layout_toRightOf="@+id/tv_end"
+            />
 </RelativeLayout>

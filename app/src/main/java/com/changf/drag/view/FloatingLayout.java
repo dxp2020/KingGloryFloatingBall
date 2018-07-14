@@ -137,7 +137,7 @@ public class FloatingLayout extends ViewGroup{
             case MotionEvent.ACTION_UP:
                 mHandler.removeMessages(0);
                 if(isClickEvent(rawX, rawY, event.getRawX(), event.getRawY(), lastDownTime, event.getEventTime(), shortClickTime)){
-                    Toast.makeText(getContext(),"单击事件",Toast.LENGTH_SHORT).show();
+                    onClickEvent();
                 }
                 break;
         }
@@ -206,4 +206,7 @@ public class FloatingLayout extends ViewGroup{
         return false;
     }
 
+    private void onClickEvent() {
+        Toast.makeText(getContext(),"单击事件",Toast.LENGTH_SHORT).show();
+    }
 }

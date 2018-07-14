@@ -29,13 +29,6 @@ import com.changf.drag.view.FloatingLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-/**
- * Description:
- *
- * @author zhaozp
- * @since 2016-10-17
- */
-
 public class FloatWindowManager {
     private static final String TAG = "FloatWindowManager";
 

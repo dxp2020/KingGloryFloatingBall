@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".bak.service.FloatingWindowService"/>
+        <activity android:name=".MainActivityTest"/>
 
     </application>
 
