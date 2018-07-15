@@ -12,6 +12,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.Scroller;
 import android.widget.Toast;
 
@@ -50,20 +51,19 @@ public class FloatingUtilView extends View {
     private long lastDownTime = 0;
     //点击时间间隔
     private long shortClickTime = 300;
-    //长按时间间隔
-    private long longPressTime = 500;
+    //小球隐藏时间
+    private long duration = 250;
+    //在被判定为滚动之前用户手指可以移动的最大值。
+    private int touchSlop;
 
     //滚动工具类
     private Scroller mScroller;
-    //振动器
-    private Vibrator vibrator;
-    //当前事件的MotionEvent
-    private MotionEvent motionEvent;
 
     private Paint ringPaint;
     private RectF ringRect;
     private boolean isShowCircleView;
-    private boolean isLongPress;
+    private boolean isHidden = true;
+    private boolean isScrolling = false;
 
     public FloatingUtilView(Context context) {
         this(context,null);
@@ -75,8 +75,6 @@ public class FloatingUtilView extends View {
     }
 
     private void init(Context context) {
-        vibrator = (Vibrator)context.getSystemService(context.VIBRATOR_SERVICE);
-
         ringPaint = new Paint();
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeWidth(radius*2);
@@ -85,8 +83,9 @@ public class FloatingUtilView extends View {
         mScroller = new Scroller(context);
         screenWidth = ViewUtils.getScreenWidth(context);
         screenHeight = ViewUtils.getScreenHeight(context);
-        ringRadius = screenWidth/2-radius;
+        ringRadius = screenWidth/3-radius;
         ringSideRaduis = ringRadius+radius;
+        touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
     }
 
     /**
@@ -104,46 +103,25 @@ public class FloatingUtilView extends View {
         intevalY = screenHeight-bottom;
         centerX = (right-left)/2;
         centerY = (bottom-top)/2;
-        updateLocation((right-left)/2,(bottom-top)/2);
+        updateLocation(0,ringSideRaduis);
     }
 
-    private Handler mHandler = new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what){
-                case 0:
-                    isLongPress = isLongPressed(downX, downY, motionEvent.getRawX(), motionEvent.getRawY());
-                    if (isLongPress) {
-                        lastDownTime = 0;
-                        vibrator.vibrate(100);
-                    }
-                    break;
-            }
-        }
-    };
-
     public boolean onTouchEvent(MotionEvent event) {
-        Log.e(TAG,MotionEventUtils.getPrintStr(event.getAction(),event.getRawX()+"",event.getRawY()+""));
-        this.motionEvent = event;
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
                 return isSmallCircleArea(event);
             case MotionEvent.ACTION_MOVE:
-                if(isLongPress){
+                if(Math.abs(downX-event.getRawX())>touchSlop||Math.abs(downY-event.getRawY())>touchSlop) {
                     moveView(event);
                 }
                 return true;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                if(isLongPress) {
-                    attachedToSide(event);
-                }
                 if(isClickEvent(downX, downY, event.getRawX(), event.getRawY(), lastDownTime, event.getEventTime(), shortClickTime)){
                     onClickEvent();
+                }else{
+                    attachedToSide(event);
                 }
-                isLongPress = false;
-                mHandler.removeMessages(0);
                 break;
         }
         return false;
@@ -154,36 +132,75 @@ public class FloatingUtilView extends View {
         downY = event.getRawY();
         float x = event.getRawX();
         float y = getRealY(event.getRawY());
-        float circleMaxX = outer_circle_x+radius;
-        float circleMinX = outer_circle_x-radius;
-        float circleMaxY = outer_circle_y+radius;
-        float circleMinY = outer_circle_y-radius;
+        float circleMaxX = inner_circle_x+radius;
+        float circleMinX = inner_circle_x-radius;
+        float circleMaxY = inner_circle_y+radius;
+        float circleMinY = inner_circle_y-radius;
         if(x<circleMaxX&&x>circleMinX&&y<circleMaxY&&y>circleMinY){
             lastDownTime = event.getDownTime();
-            //显示圆环的情况下，不能移动View
-            if(!isShowCircleView){
-                mHandler.sendEmptyMessageDelayed(0,longPressTime);
-            }
             return true;
         }else{
             return false;
         }
     }
 
+    private void moveView(MotionEvent event) {
+        duration = 250;
+        isShowCircleView = false;
+        handler.removeMessages(0);
+        updateLocation(event.getRawX(),getRealY(event.getRawY()));
+        invalidate();
+    }
+
     private void attachedToSide(MotionEvent event) {
+        isHidden = false;
         float x = event.getRawX();
         float y = getRealY(event.getRawY());
         attachedToSide(x,y);
     }
 
     private void attachedToSide(float x,float y) {
+        //当小球移动到左上部分、右上部分的时候
+        if(y<centerY&&((x<centerX&&y<x)||(x>centerX&&y<(screenWidth-x)))){
+            //吸附到顶部
+            if((x-ringSideRaduis)>0&&(x+ringSideRaduis)<screenWidth){
+                mScroller.startScroll((int) x, (int) y, 0, (int) -(y - radius));
+                invalidate();
+                return;
+            }else if(x<centerX){
+                mScroller.startScroll((int) x, (int) y, (int) -(x-ringSideRaduis), (int) -(y - radius));
+                invalidate();
+                return;
+            }else if(x>centerX){
+                mScroller.startScroll((int) x, (int) y, (int) (screenWidth-x-ringSideRaduis), (int) -(y - radius));
+                invalidate();
+                return;
+            }
+        //小球移动到左下部分、右下部分的时候
+        }else if(y>centerY&&((x<centerX&&(getBottom()-y)<x)||(x>centerX&&((getBottom()-y)<(screenWidth-x))))){
+            //吸附到底部
+            if((x-ringSideRaduis)>0&&(x+ringSideRaduis)<screenWidth){
+                mScroller.startScroll((int) x, (int) y, 0, (int) (getBottom()-y - radius));
+                invalidate();
+                return;
+            }else if(x<centerX){
+                mScroller.startScroll((int) x, (int) y, (int) -(x-ringSideRaduis),(int) (getBottom()-y - radius));
+                invalidate();
+                return;
+            }else if(x>centerX){
+                mScroller.startScroll((int) x, (int) y, (int) (screenWidth-x-ringSideRaduis),(int) (getBottom()-y - radius));
+                invalidate();
+                return;
+            }
+            return;
+        }
         if(x<centerX){
             if(y<centerY&&y<ringSideRaduis) {
                 //吸附到左上角
-                mScroller.startScroll((int) x, (int) y, (int) -(x - radius), (int) -(y - radius));
+                mScroller.startScroll((int) x, (int) y, (int) -(x - radius), (int) -(y - ringSideRaduis));
             }else if(y>centerY&&(getBottom()-y)<ringSideRaduis){
                 //吸附到左下角
-                mScroller.startScroll((int) x, (int) y, (int) -(x - radius), (int) (getBottom()-y-radius));
+                mScroller.startScroll((int) x, (int) y, (int) -(x - radius), (int) (getBottom()-y-ringSideRaduis));
             }else{
                 //吸附到左边
                 mScroller.startScroll((int) x,(int)y, (int) -(x-radius), 0);
@@ -191,10 +208,10 @@ public class FloatingUtilView extends View {
         }else if(x>centerX){
             if(y<centerY&&y<ringSideRaduis) {
                 //吸附到左上角
-                mScroller.startScroll((int) x, (int) y, (int) (screenWidth-x-radius), (int) -(y - radius));
+                mScroller.startScroll((int) x, (int) y, (int) (screenWidth-x-radius), (int) -(y - ringSideRaduis));
             }else if(y>centerY&&(getBottom()-y)<ringSideRaduis){
                 //吸附到左下角
-                mScroller.startScroll((int) x, (int) y, (int) (screenWidth-x-radius), (int) (getBottom()-y-radius));
+                mScroller.startScroll((int) x, (int) y, (int) (screenWidth-x-radius), (int) (getBottom()-y-ringSideRaduis));
             }else{
                 //吸附到左边
                 mScroller.startScroll((int) x,(int)y, (int) (screenWidth-x-radius), 0);
@@ -203,31 +220,45 @@ public class FloatingUtilView extends View {
         invalidate();
     }
 
-    public void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        Paint paint = new Paint();
-        paint.setColor(Color.parseColor("#7effffff"));
-        canvas.drawCircle(outer_circle_x, outer_circle_y, radius, paint);
-        paint.setColor(Color.parseColor("#c5fcfbfb"));
-        canvas.drawCircle(inner_circle_x, inner_circle_y, radius - 30, paint);
-
-        if(isShowCircleView){
-            canvas.drawArc(ringRect,0,360,false,ringPaint);
-        }
-    }
-
     @Override
     public void computeScroll() {
         if(mScroller.computeScrollOffset()){
+            isScrolling = true;
             updateLocation(mScroller.getCurrX(),mScroller.getCurrY());
             postInvalidate();
+        }else{
+            isScrolling = false;
+            if(!isHidden){
+                handler.sendEmptyMessageDelayed(0,duration);
+            }
         }
     }
 
-    private void moveView(MotionEvent event) {
-        updateLocation(event.getRawX(),getRealY(event.getRawY()));
-        invalidate();
-    }
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 0:
+                    isShowCircleView = false;
+                    isHidden = true;
+                    if(Math.abs(inner_circle_x-radius)<2){
+                        mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, (int) -radius, 0);
+                        postInvalidate();
+                    }else if(Math.abs(inner_circle_x-getRight()+radius)<2){
+                        mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, (int) radius, 0);
+                        postInvalidate();
+                    }else if(Math.abs(inner_circle_y-radius)<2){
+                        mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, 0, (int) -radius);
+                        postInvalidate();
+                    }else if(Math.abs(inner_circle_y-getBottom()+radius)<2){
+                        mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, 0, (int) radius);
+                        postInvalidate();
+                    }
+                    break;
+            }
+        }
+    };
 
     private void updateLocation(float downX,float downY){
         inner_circle_x = downX;
@@ -254,19 +285,47 @@ public class FloatingUtilView extends View {
         return false;
     }
 
-    //判断是否是长按事件
-    private boolean isLongPressed(float lastX, float lastY, float thisX,float thisY) {
-        float offsetX = Math.abs(thisX - lastX);
-        float offsetY = Math.abs(thisY - lastY);
-        if (offsetX <= 10 && offsetY <= 10) {
-            return true;
+    /**
+     * 隐藏状态---->显示出来
+     * 显示状态---->显示、隐藏圆环
+     */
+    private void onClickEvent() {
+        //滚动状态禁止点击事件
+        if(isScrolling){
+           return;
         }
-        return false;
+        if(!isHidden){
+            isShowCircleView = !isShowCircleView;
+            handler.removeMessages(0);
+            invalidate();
+            return;
+        }
+        duration = 2000;
+        isHidden = false;
+        isShowCircleView = !isShowCircleView;
+        if(Math.abs(inner_circle_x)<2){
+            mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, (int) radius, 0);
+        }else if(Math.abs(inner_circle_x-getRight())<2){
+            mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, (int) -radius, 0);
+        }else if(Math.abs(inner_circle_y)<2){
+            mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, 0, (int) radius);
+        }else if(Math.abs(inner_circle_y-getBottom())<2){
+            mScroller.startScroll((int) inner_circle_x, (int) inner_circle_y, 0, (int) -radius);
+        }
+        invalidate();
     }
 
-    private void onClickEvent() {
-        isShowCircleView=!isShowCircleView;
-        invalidate();
+    public void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        Paint paint = new Paint();
+        paint.setColor(Color.parseColor("#7effffff"));
+        canvas.drawCircle(outer_circle_x, outer_circle_y, radius, paint);
+        paint.setColor(Color.parseColor("#c5fcfbfb"));
+        canvas.drawCircle(inner_circle_x, inner_circle_y, radius - 30, paint);
+
+        if(isShowCircleView){
+            canvas.drawArc(ringRect,0,360,false,ringPaint);
+        }
     }
 
 }
