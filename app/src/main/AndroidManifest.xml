@@ -22,6 +22,7 @@
         </activity>
 
         <activity android:name=".MainActivityTest"/>
+        <activity android:name=".MainActivityTest2"/>
 
     </application>
 
