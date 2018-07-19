@@ -9,6 +9,8 @@ public class MainActivityTest2 extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_test2);
-
     }
+
+
+
 }

@@ -5,7 +5,6 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -15,11 +14,9 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Scroller;
 
 import com.changf.drag.R;
-import com.changf.drag.utils.MotionEventUtils;
 import com.changf.drag.utils.ViewUtils;
 
 import java.util.ArrayList;
@@ -81,9 +78,25 @@ public class FloatingViewGroup extends ViewGroup {
 
         ImageView menuView = new ImageView(context);
         menuView.setImageResource(R.mipmap.suspend_1);
+
+        ImageView menuView2 = new ImageView(context);
+        menuView2.setImageResource(R.mipmap.suspend_2);
+
+        ImageView menuView3 = new ImageView(context);
+        menuView3.setImageResource(R.mipmap.suspend_3);
+
+        ImageView menuView4 = new ImageView(context);
+        menuView4.setImageResource(R.mipmap.suspend_4);
+
         mMenuViews.add(menuView);
+        mMenuViews.add(menuView2);
+        mMenuViews.add(menuView3);
+        mMenuViews.add(menuView4);
 
         addView(menuView);
+        addView(menuView2);
+        addView(menuView3);
+        addView(menuView4);
     }
 
     @Override
@@ -137,6 +150,16 @@ public class FloatingViewGroup extends ViewGroup {
                 break;
         }
         return false;
+    }
+
+    private void onClickEvent() {
+        if(mMenuViews.get(0).getVisibility()==View.GONE){
+            showMenu();
+            handler.sendEmptyMessage(1);
+        }else{
+            hiddenMenu();
+            handler.sendEmptyMessageDelayed(0,750);
+        }
     }
 
     private void attachedToSide() {
@@ -214,10 +237,17 @@ public class FloatingViewGroup extends ViewGroup {
             postInvalidate();
         }else{
             isScrolling = false;
-            if(!isHidden){
+            if(!isHidden&&!isShowingMenu()){
                 handler.sendEmptyMessageDelayed(0,duration);
             }
         }
+    }
+
+    private boolean isShowingMenu(){
+        if(mMenuViews.size()>0&&mMenuViews.get(0).getVisibility()==View.VISIBLE){
+            return true;
+        }
+        return false;
     }
 
     private Handler handler = new Handler(){
@@ -225,34 +255,122 @@ public class FloatingViewGroup extends ViewGroup {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what){
+                //小球收缩进屏幕
                 case 0:
-                    isHidden = true;
-                    float mainMenuX = getMainMenuX();
-                    float mainMenuY = getMainMenuY();
-
-                    if(Math.abs(mainMenuX-menuRadius)<2){
-                        mScroller.startScroll((int) mainMenuX, (int) mainMenuY, (int) -menuRadius, 0);
-                        postInvalidate();
-                    }else if(Math.abs(mainMenuX-getRight()+menuRadius)<2){
-                        mScroller.startScroll((int) mainMenuX, (int) mainMenuY, (int) menuRadius, 0);
-                        postInvalidate();
-                    }else if(Math.abs(mainMenuY-menuRadius)<2){
-                        mScroller.startScroll((int) mainMenuX, (int) mainMenuY, 0, (int) -menuRadius);
-                        postInvalidate();
-                    }else if(Math.abs(mainMenuY-getBottom()+menuRadius)<2){
-                        mScroller.startScroll((int) mainMenuX, (int) mainMenuY, 0, (int) menuRadius);
-                        postInvalidate();
-                    }
+                    hiddenMainMenu();
+                    break;
+                //小球从屏幕中弹出
+                case 1:
+                    showMainMenu();
                     break;
             }
         }
     };
 
-    private void onClickEvent() {
-        if(mMenuViews.get(0).getVisibility()==View.GONE){
-            showMenu( mMenuViews.get(0),imageMain.getX(),imageMain.getY(),imageMain.getX()+200,imageMain.getY()+200);
-        }else{
-            hiddenMenu( mMenuViews.get(0),mMenuViews.get(0).getX(),mMenuViews.get(0).getY(),imageMain.getX(),imageMain.getY());
+    private void showMainMenu() {
+        isHidden = false;
+        float startX = getMainMenuX();
+        float startY = getMainMenuY();
+        if(imageMain.getLeft()<getLeft()){
+            mScroller.startScroll((int) startX, (int) startY, (int) menuRadius, 0);
+            invalidate();
+        }else if(imageMain.getRight()>getRight()){
+            mScroller.startScroll((int) startX, (int) startY, (int) -menuRadius, 0);
+            invalidate();
+        }else if(imageMain.getTop()<getTop()){
+            mScroller.startScroll((int) startX, (int) startY, 0, (int) menuRadius);
+            invalidate();
+        }else if(imageMain.getBottom()>getBottom()){
+            mScroller.startScroll((int) startX, (int) startY, 0, (int) -menuRadius);
+            invalidate();
+        }
+    }
+
+    private void hiddenMainMenu() {
+        isHidden = true;
+        float startX = getMainMenuX();
+        float startY = getMainMenuY();
+
+        if(Math.abs(imageMain.getLeft()-getLeft())<2){
+            mScroller.startScroll((int) startX, (int) startY, (int) -menuRadius, 0);
+            invalidate();
+        }else if(Math.abs(imageMain.getRight()-getRight())<2){
+            mScroller.startScroll((int) startX, (int) startY, (int) menuRadius, 0);
+            invalidate();
+        }else if(Math.abs(imageMain.getTop()-getTop())<2){
+            mScroller.startScroll((int) startX, (int) startY, 0, (int) -menuRadius);
+            invalidate();
+        }else if(Math.abs(imageMain.getBottom()-getBottom())<2){
+            mScroller.startScroll((int) startX, (int) startY, 0, (int) menuRadius);
+            invalidate();
+        }
+    }
+
+    private void showMenu(int[] angles,float startX,float startY,float moveDistanse){
+        float endX;
+        float endY;
+        for(int i=0;i<mMenuViews.size();i++){
+            ImageView iv = mMenuViews.get(i);
+            endX = startX+moveDistanse*sin(90-angles[i])/sin(90) ;
+            endY = startY-moveDistanse*sin(angles[i])/sin(90) ;
+            showMenu(iv,startX,startY,endX,endY);
+        }
+    }
+
+    private void hiddenMenu(int[] angles,float startX,float startY,float moveDistanse){
+        float endX;
+        float endY;
+        for(int i=0;i<mMenuViews.size();i++){
+            ImageView iv = mMenuViews.get(i);
+            endX = startX+moveDistanse*sin(90-angles[i])/sin(90) ;
+            endY = startY-moveDistanse*sin(angles[i])/sin(90) ;
+            hiddenMenu(iv,endX,endY,startX,startY);
+        }
+    }
+
+    private void showMenu() {
+        float startX = imageMain.getX();
+        float startY = imageMain.getY();
+        float moveDistanse = ringSideRaduis;
+        //左边
+        if(imageMain.getLeft()<getLeft()){
+            int[] angles = {70,30,-30,-70};
+            showMenu(angles,startX,startY,moveDistanse);
+        //上边
+        }else if(imageMain.getTop()<getTop()){
+            int[] angles = {-20,-60,-120,-160};
+            showMenu(angles,startX,startY,moveDistanse);
+        //右边
+        }else if(imageMain.getRight()>getRight()){
+            int[] angles = {-110,-150,150,110};
+            showMenu(angles,startX,startY,moveDistanse);
+        //下边
+        }else if(imageMain.getBottom()>getBottom()){
+            int[] angles = {160,120,60,20};
+            showMenu(angles,startX,startY,moveDistanse);
+        }
+    }
+
+    private void hiddenMenu() {
+        float startX = imageMain.getX();
+        float startY = imageMain.getY();
+        float moveDistanse = ringSideRaduis;
+        //左边
+        if(imageMain.getLeft()<=getLeft()){
+            int[] angles = {70,30,-30,-70};
+            hiddenMenu(angles,startX,startY,moveDistanse);
+            //上边
+        }else if(imageMain.getTop()<=getTop()){
+            int[] angles = {-20,-60,-120,-160};
+            hiddenMenu(angles,startX,startY,moveDistanse);
+            //右边
+        }else if(imageMain.getRight()>=getRight()){
+            int[] angles = {-110,-150,150,110};
+            hiddenMenu(angles,startX,startY,moveDistanse);
+            //下边
+        }else if(imageMain.getBottom()>=getBottom()){
+            int[] angles = {160,120,60,20};
+            hiddenMenu(angles,startX,startY,moveDistanse);
         }
     }
 
@@ -264,27 +382,23 @@ public class FloatingViewGroup extends ViewGroup {
         doMoving(imageView,startX,startY,endX,endY,true);
     }
 
-    private void doMoving(ImageView imageView,float startX,float startY,float endX,float endY,final boolean isShowMenu) {
+    private void doMoving(final ImageView imageView,float startX,float startY,float endX,float endY,final boolean isShowMenu) {
         ObjectAnimator animatorX = ObjectAnimator.ofFloat(imageView, "translationX", startX, endX);
         ObjectAnimator animatorY = ObjectAnimator.ofFloat(imageView, "translationY", startY, endY);
         AnimatorSet set = new AnimatorSet();
         set.playTogether(animatorX, animatorY);
-        set.setDuration(1000);
+        set.setDuration(500);
         set.addListener(new Animator.AnimatorListener(){
             @Override
             public void onAnimationStart(Animator animation) {
                 if (isShowMenu) {
-                    for(ImageView imageView:mMenuViews){
-                        imageView.setVisibility(View.VISIBLE);
-                    }
+                    imageView.setVisibility(View.VISIBLE);
                 }
             }
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (!isShowMenu) {
-                    for(ImageView imageView:mMenuViews){
-                        imageView.setVisibility(View.GONE);
-                    }
+                    imageView.setVisibility(View.GONE);
                 }
             }
             @Override
@@ -293,6 +407,10 @@ public class FloatingViewGroup extends ViewGroup {
             public void onAnimationRepeat(Animator animation) {}
         });
         set.start();
+    }
+
+    private float sin(double angle){
+        return (float) Math.sin(angle*Math.PI/180);
     }
 
     private void moveMainMenu(MotionEvent event) {
@@ -337,11 +455,11 @@ public class FloatingViewGroup extends ViewGroup {
     }
 
     private float getMainMenuX() {
-        return imageMain.getX()+imageMain.getWidth()/2;
+        return imageMain.getX()+menuRadius;
     }
 
     private float getMainMenuY() {
-        return imageMain.getY()+imageMain.getHeight()/2;
+        return imageMain.getY()+menuRadius;
     }
 
 }
