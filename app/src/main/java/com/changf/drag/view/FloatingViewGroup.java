@@ -142,11 +142,14 @@ public class FloatingViewGroup extends ViewGroup {
     }
 
     private void onClickEvent() {
+        //移除HIDDEN_MENU事件
+        handler.removeMessages(HIDDEN_MENU);
+        //移除AUTO_HIDDEN事件
+        handler.removeMessages(AUTO_HIDDEN);
+
         if(menuGroup.isShowing()){
             hiddenMenu();
             handler.sendEmptyMessageDelayed(HIDDEN_MENU,750);
-            //移除自动隐藏事件
-            handler.removeMessages(AUTO_HIDDEN);
         }else{
             showMenu();
             //小球从屏幕中弹出
@@ -265,15 +268,39 @@ public class FloatingViewGroup extends ViewGroup {
     public void computeScroll() {
         if(mScroller.computeScrollOffset()){
             isScrolling = true;
-            menuGroup.offsetLeftAndRight((int) (mScroller.getCurrX()-getMainMenuCenterX()));
-            menuGroup.offsetTopAndBottom((int) (mScroller.getCurrY()-getMainMenuCenterY()));
+            menuGroup.offsetLeftAndRight(mScroller.getCurrX()-getMainMenuCenterX());
+            menuGroup.offsetTopAndBottom(mScroller.getCurrY()-getMainMenuCenterY());
             postInvalidate();
         }else{
             isScrolling = false;
-            if(!isHidden&&!menuGroup.isShowing()){
+            if(isHiddenMenu()){
+                //移除AUTO_HIDDEN事件
+                handler.removeMessages(AUTO_HIDDEN);
                 handler.sendEmptyMessageDelayed(HIDDEN_MENU,duration);
             }
         }
+    }
+
+    private boolean isHiddenMenu() {
+        //子菜单显示的时候，不自动隐藏
+        if(menuGroup.isShowing()){
+            return false;
+        }
+        Direction direction = getDirection();
+        float left = getMainMenuLeft();
+        float top = getMainMenuTop();
+        float right = getMainMenuRight();
+        float bottom = getMainMenuBottom();
+        if(direction == Direction.LEFT){
+            return left>=getLeft();
+        }else if(direction == Direction.TOP){
+            return top>=getTop();
+        }else if(direction == Direction.RIGHT){
+            return right<=getRight();
+        }else if(direction == Direction.BOTTOM){
+            return bottom<=getBottom();
+        }
+        return false;
     }
 
     private Handler handler = new Handler(){
@@ -283,13 +310,16 @@ public class FloatingViewGroup extends ViewGroup {
             switch (msg.what){
                 //小球收缩进屏幕
                 case HIDDEN_MENU:
+                    Log.e(TAG,"HIDDEN_MENU");
                     hiddenMainMenu();
                     break;
                 //小球从屏幕中弹出
                 case POP_MENU:
+                    Log.e(TAG,"POP_MENU");
                     showMainMenu();
                     break;
                 case AUTO_HIDDEN:
+                    Log.e(TAG,"AUTO_HIDDEN");
                     hiddenMainMenu();
                     hiddenMenu();
                     break;
@@ -299,38 +329,40 @@ public class FloatingViewGroup extends ViewGroup {
 
     private void showMainMenu() {
         isHidden = false;
-        float startX = getMainMenuCenterX();
-        float startY = getMainMenuCenterY();
-        if(getMainMenuLeft()<getLeft()){
-            mScroller.startScroll((int) startX, (int) startY, (int) menuRadius, 0);
+        int startX = getMainMenuCenterX();
+        int startY = getMainMenuCenterY();
+        Direction direction = getDirection();
+        if(direction==Direction.LEFT){
+            mScroller.startScroll(startX, startY, menuRadius-startX, 0);
             invalidate();
-        }else if(getMainMenuRight()>getRight()){
-            mScroller.startScroll((int) startX, (int) startY, (int) -menuRadius, 0);
+        }else if(direction==Direction.RIGHT){
+            mScroller.startScroll(startX, startY, getRight()-startX-menuRadius, 0);
             invalidate();
-        }else if(getMainMenuTop()<getTop()){
-            mScroller.startScroll((int) startX, (int) startY, 0, (int) menuRadius);
+        }else if(direction==Direction.TOP){
+            mScroller.startScroll(startX, startY, 0, menuRadius-startY);
             invalidate();
-        }else if(getMainMenuBottom()>getBottom()){
-            mScroller.startScroll((int) startX, (int) startY, 0, (int) -menuRadius);
+        }else if(direction==Direction.BOTTOM){
+            mScroller.startScroll(startX, startY, 0, getBottom()-startY-menuRadius);
             invalidate();
         }
     }
 
     private void hiddenMainMenu() {
         isHidden = true;
-        float startX = getMainMenuCenterX();
-        float startY = getMainMenuCenterY();
-        if(Math.abs(getMainMenuLeft()-getLeft())<2){
-            mScroller.startScroll((int) startX, (int) startY, (int) -menuRadius, 0);
+        int startX = getMainMenuCenterX();
+        int startY = getMainMenuCenterY();
+        Direction direction = getDirection();
+        if(direction==Direction.LEFT){
+            mScroller.startScroll(startX, startY, -startX, 0);
             invalidate();
-        }else if(Math.abs(getMainMenuRight()-getRight())<2){
-            mScroller.startScroll((int) startX, (int) startY, (int) menuRadius, 0);
+        }else if(direction==Direction.RIGHT){
+            mScroller.startScroll(startX, startY, getRight()-startX, 0);
             invalidate();
-        }else if(Math.abs(getMainMenuTop()-getTop())<2){
-            mScroller.startScroll((int) startX, (int) startY, 0, (int) -menuRadius);
+        }else if(direction==Direction.TOP){
+            mScroller.startScroll(startX, startY, 0, -startY);
             invalidate();
-        }else if(Math.abs(getMainMenuBottom()-getBottom())<2){
-            mScroller.startScroll((int) startX, (int) startY, 0, (int) menuRadius);
+        }else if(direction==Direction.BOTTOM){
+            mScroller.startScroll(startX, startY, 0, getBottom()-startY);
             invalidate();
         }
     }
@@ -398,11 +430,11 @@ public class FloatingViewGroup extends ViewGroup {
         return false;
     }
 
-    private float getMainMenuCenterX() {
+    private int getMainMenuCenterX() {
         return getMainMenuLeft()+menuRadius;
     }
 
-    private float getMainMenuCenterY() {
+    private int getMainMenuCenterY() {
         return getMainMenuTop()+menuRadius;
     }
 

@@ -24,7 +24,7 @@ public class MenuGroup extends ViewGroup{
 
     private ImageView imageMain;
     //菜单
-    private List<ImageView> mMenuViews = new ArrayList<>();
+    private List<SubMenu> mMenuViews = new ArrayList<>();
     //移动距离
     private static int moveDistanse = 300;
     //张开方向
@@ -44,17 +44,21 @@ public class MenuGroup extends ViewGroup{
         imageMain.setImageResource(R.mipmap.icon_suspend_main);
         addView(imageMain);
 
-        ImageView menuView = new ImageView(context);
+        SubMenu menuView = new SubMenu(context);
         menuView.setImageResource(R.mipmap.suspend_1);
+        menuView.setText("通知");
 
-        ImageView menuView2 = new ImageView(context);
+        SubMenu menuView2 = new SubMenu(context);
         menuView2.setImageResource(R.mipmap.suspend_2);
+        menuView2.setText("福利");
 
-        ImageView menuView3 = new ImageView(context);
+        SubMenu menuView3 = new SubMenu(context);
         menuView3.setImageResource(R.mipmap.suspend_3);
+        menuView3.setText("录屏");
 
-        ImageView menuView4 = new ImageView(context);
+        SubMenu menuView4 = new SubMenu(context);
         menuView4.setImageResource(R.mipmap.suspend_4);
+        menuView4.setText("设置");
 
         mMenuViews.add(menuView);
         mMenuViews.add(menuView2);
@@ -75,7 +79,7 @@ public class MenuGroup extends ViewGroup{
             View view = getChildAt(i);
             measureChild(view,widthMeasureSpec,heightMeasureSpec);
         }
-        int menuGroupWidth = 2*moveDistanse+imageMain.getMeasuredWidth();
+        int menuGroupWidth = 2*moveDistanse+mMenuViews.get(0).getMeasuredWidth();
         int menuGroupHeight = menuGroupWidth;
         setMeasuredDimension(menuGroupWidth,menuGroupHeight);
     }
@@ -96,7 +100,7 @@ public class MenuGroup extends ViewGroup{
 
             imageMain.layout(left,top,right,bottom);
 
-            for(ImageView imageView:mMenuViews){
+            for(SubMenu imageView:mMenuViews){
                 int w = imageView.getMeasuredWidth();
                 int h = imageView.getMeasuredHeight();
                 imageView.layout(0,0,w,h);
@@ -116,23 +120,23 @@ public class MenuGroup extends ViewGroup{
     }
 
     public void showMenu() {
-        float startX = imageMain.getX();
-        float startY = imageMain.getY();
+        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth());
+        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight());
         //左边
         if(direction == Direction.LEFT){
-            int[] angles = {70,30,-30,-70};
+            int[] angles = {90,45,-45,-90};
             showMenu(angles,startX,startY,moveDistanse);
             //上边
         }else if(direction == Direction.TOP){
-            int[] angles = {-20,-60,-120,-160};
+            int[] angles = {0,-45,-135,-180};
             showMenu(angles,startX,startY,moveDistanse);
             //右边
         }else if(direction == Direction.RIGHT){
-            int[] angles = {-110,-150,150,110};
+            int[] angles = {-90,-135,135,90};
             showMenu(angles,startX,startY,moveDistanse);
             //下边
         }else if(direction == Direction.BOTTOM){
-            int[] angles = {160,120,60,20};
+            int[] angles = {180,135,45,0};
             showMenu(angles,startX,startY,moveDistanse);
         }else{
             Log.e(TAG,"没有显示成功");
@@ -140,8 +144,8 @@ public class MenuGroup extends ViewGroup{
     }
 
     public void hiddenMenu() {
-        float startX = imageMain.getX();
-        float startY = imageMain.getY();
+        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth());
+        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight());
         //左边
         if(direction == Direction.LEFT){
             int[] angles = {70,30,-30,-70};
@@ -167,7 +171,7 @@ public class MenuGroup extends ViewGroup{
         float endX;
         float endY;
         for(int i=0;i<mMenuViews.size();i++){
-            ImageView iv = mMenuViews.get(i);
+            SubMenu iv = mMenuViews.get(i);
             endX = startX+moveDistanse*sin(90-angles[i])/sin(90) ;
             endY = startY-moveDistanse*sin(angles[i])/sin(90) ;
             showMenu(iv,startX,startY,endX,endY);
@@ -178,22 +182,22 @@ public class MenuGroup extends ViewGroup{
         float endX;
         float endY;
         for(int i=0;i<mMenuViews.size();i++){
-            ImageView iv = mMenuViews.get(i);
+            SubMenu iv = mMenuViews.get(i);
             endX = startX+moveDistanse*sin(90-angles[i])/sin(90) ;
             endY = startY-moveDistanse*sin(angles[i])/sin(90) ;
             hiddenMenu(iv,endX,endY,startX,startY);
         }
     }
 
-    private void showMenu(ImageView imageView,float startX,float startY,float endX,float endY) {
+    private void showMenu(SubMenu imageView,float startX,float startY,float endX,float endY) {
         doMoving(imageView,startX,startY,endX,endY,true);
     }
 
-    private void hiddenMenu(ImageView imageView,float startX,float startY,float endX,float endY){
+    private void hiddenMenu(SubMenu imageView,float startX,float startY,float endX,float endY){
         doMoving(imageView,startX,startY,endX,endY,false);
     }
 
-    private void doMoving(final ImageView imageView,float startX,float startY,float endX,float endY,final boolean isShowMenu) {
+    private void doMoving(final SubMenu imageView,float startX,float startY,float endX,float endY,final boolean isShowMenu) {
         ObjectAnimator animatorX = ObjectAnimator.ofFloat(imageView, "translationX", startX, endX);
         ObjectAnimator animatorY = ObjectAnimator.ofFloat(imageView, "translationY", startY, endY);
         AnimatorSet set = new AnimatorSet();
