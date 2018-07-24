@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#cccccc"
+    android:orientation="vertical"
+    android:gravity="center"
     >
         <Button
             android:id="@+id/tv_start"
@@ -14,22 +16,24 @@
             android:id="@+id/tv_end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tv_start"
             android:text="结束"
             />
         <Button
             android:id="@+id/tv_test"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tv_start"
             android:text="测试"
-            android:layout_toRightOf="@+id/tv_end"
             />
         <Button
             android:id="@+id/tv_test2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="测试2"
-            android:layout_toRightOf="@+id/tv_start"
             />
-</RelativeLayout>
+        <Button
+            android:id="@+id/tv_test3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="测试3"
+            />
+</LinearLayout>
