@@ -14,7 +14,7 @@ import com.changf.drag.R;
 
 public class SubMenu extends LinearLayout {
     private ImageView menuView;
-    private TextView menuText;
+    private MenuText menuText;
 
     public SubMenu(Context context) {
         this(context,null);
@@ -32,11 +32,9 @@ public class SubMenu extends LinearLayout {
         menuView = new ImageView(context);
         menuView.setImageResource(R.mipmap.suspend_1);
 
-        menuText = new TextView(context);
-        menuText.setText("通知");
+        menuText = new MenuText(context);
         menuText.setTextColor(Color.WHITE);
-        menuText.setRotation(90);
-        menuText.setTextSize(TypedValue.COMPLEX_UNIT_DIP,10);
+        menuText.setTextSize(10);
 
         addView(menuText);
         addView(menuView);

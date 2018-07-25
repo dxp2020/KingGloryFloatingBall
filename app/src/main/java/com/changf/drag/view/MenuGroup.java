@@ -26,7 +26,7 @@ public class MenuGroup extends ViewGroup{
     //菜单
     private List<SubMenu> mMenuViews = new ArrayList<>();
     //移动距离
-    private static int moveDistanse = 300;
+    private static int moveDistanse = 250;
     //张开方向
     private Direction direction = Direction.LEFT;
 
@@ -69,6 +69,17 @@ public class MenuGroup extends ViewGroup{
         addView(menuView2);
         addView(menuView3);
         addView(menuView4);
+
+//        imageMain.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(isShowing()){
+//                    hiddenMenu();
+//                }else {
+//                    showMenu();
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -106,6 +117,16 @@ public class MenuGroup extends ViewGroup{
                 imageView.layout(0,0,w,h);
                 imageView.setVisibility(View.GONE);
             }
+
+//            for(SubMenu imageView:mMenuViews){
+//                int w = imageView.getMeasuredWidth();
+//                int h = imageView.getMeasuredHeight();
+//                int cx = (r-l)/2;
+//                int cy = (b-t)/2;
+//
+//                imageView.layout(cx-w/2,cy-h/2,cx+w/2,cy+h/2);
+//                imageView.setVisibility(View.GONE);
+//            }
         }
     }
 
@@ -120,23 +141,23 @@ public class MenuGroup extends ViewGroup{
     }
 
     public void showMenu() {
-        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth());
-        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight());
+        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth())/2;
+        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight())/2;
         //左边
         if(direction == Direction.LEFT){
-            int[] angles = {90,45,-45,-90};
+            int[] angles = {85,30,-30,-85};
             showMenu(angles,startX,startY,moveDistanse);
             //上边
         }else if(direction == Direction.TOP){
-            int[] angles = {0,-45,-135,-180};
+            int[] angles = {-5,-60,-120,-175};
             showMenu(angles,startX,startY,moveDistanse);
             //右边
         }else if(direction == Direction.RIGHT){
-            int[] angles = {-90,-135,135,90};
+            int[] angles = {-95,-150,150,95};
             showMenu(angles,startX,startY,moveDistanse);
             //下边
         }else if(direction == Direction.BOTTOM){
-            int[] angles = {180,135,45,0};
+            int[] angles = {175,120,60,5};
             showMenu(angles,startX,startY,moveDistanse);
         }else{
             Log.e(TAG,"没有显示成功");
@@ -144,8 +165,8 @@ public class MenuGroup extends ViewGroup{
     }
 
     public void hiddenMenu() {
-        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth());
-        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight());
+        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth())/2;
+        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight())/2;
         //左边
         if(direction == Direction.LEFT){
             int[] angles = {70,30,-30,-70};
