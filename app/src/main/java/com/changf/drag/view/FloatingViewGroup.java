@@ -1,10 +1,6 @@
 package com.changf.drag.view;
 
 
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -14,15 +10,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.Scroller;
 
-import com.changf.drag.R;
 import com.changf.drag.model.Direction;
 import com.changf.drag.utils.ViewUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FloatingViewGroup extends ViewGroup {
     private static final String TAG = FloatingViewGroup.class.getSimpleName();
@@ -112,11 +103,6 @@ public class FloatingViewGroup extends ViewGroup {
             int bottom = (int) (width/2+centerX);
             menuGroup.layout(left,top,right,bottom);
         }
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent event) {
-        return true;//此时无论返回任何值，都会onTouch都会执行，那么直接返回true
     }
 
     @Override
@@ -310,16 +296,16 @@ public class FloatingViewGroup extends ViewGroup {
             switch (msg.what){
                 //小球收缩进屏幕
                 case HIDDEN_MENU:
-                    Log.e(TAG,"HIDDEN_MENU");
+//                    Log.e(TAG,"HIDDEN_MENU");
                     hiddenMainMenu();
                     break;
                 //小球从屏幕中弹出
                 case POP_MENU:
-                    Log.e(TAG,"POP_MENU");
+//                    Log.e(TAG,"POP_MENU");
                     showMainMenu();
                     break;
                 case AUTO_HIDDEN:
-                    Log.e(TAG,"AUTO_HIDDEN");
+//                    Log.e(TAG,"AUTO_HIDDEN");
                     hiddenMainMenu();
                     hiddenMenu();
                     break;
@@ -436,6 +422,21 @@ public class FloatingViewGroup extends ViewGroup {
 
     private int getMainMenuCenterY() {
         return getMainMenuTop()+menuRadius;
+    }
+
+    public void setMenuItemClickListener(final MenuGroup.OnMenuItemClickListener onMenuItemClickListener) {
+        menuGroup.setMenuItemClickListener(new MenuGroup.OnMenuItemClickListener(){
+            @Override
+            public void onItemClick(int position) {
+                if(onMenuItemClickListener!=null){
+                    onMenuItemClickListener.onItemClick(position);
+                }
+                //移除AUTO_HIDDEN事件
+                handler.removeMessages(AUTO_HIDDEN);
+                //设置自动隐藏事件
+                handler.sendEmptyMessageDelayed(AUTO_HIDDEN,2500);
+            }
+        });
     }
 
 }

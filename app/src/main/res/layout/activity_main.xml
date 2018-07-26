@@ -8,38 +8,26 @@
     >
         <Button
             android:id="@+id/tv_start"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="启动"
+            android:text="悬浮窗打开"
             />
         <Button
             android:id="@+id/tv_end"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="结束"
+            android:text="悬浮窗关闭"
             />
         <Button
             android:id="@+id/tv_test"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="测试"
             />
         <Button
             android:id="@+id/tv_test2"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="测试2"
-            />
-        <Button
-            android:id="@+id/tv_test3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="测试3"
-            />
-        <Button
-            android:id="@+id/tv_test4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="测试4"
+            android:text="高仿王者荣耀悬浮可拖拽小球"
             />
 </LinearLayout>

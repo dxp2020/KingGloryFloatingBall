@@ -37,17 +37,5 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(MainActivity.this,MainActivityTest2.class));
             }
         });
-        findViewById(R.id.tv_test3).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,MainActivityTest3.class));
-            }
-        });
-        findViewById(R.id.tv_test4).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,MainActivityTest4.class));
-            }
-        });
     }
 }

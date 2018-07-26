@@ -29,6 +29,8 @@ public class MenuGroup extends ViewGroup{
     private static int moveDistanse = 250;
     //张开方向
     private Direction direction = Direction.LEFT;
+    //子菜单点击监听
+    private OnMenuItemClickListener mOnMenuItemClickListener;
 
     public MenuGroup(Context context) {
         this(context,null);
@@ -47,18 +49,22 @@ public class MenuGroup extends ViewGroup{
         SubMenu menuView = new SubMenu(context);
         menuView.setImageResource(R.mipmap.suspend_1);
         menuView.setText("通知");
+        menuView.setOnClickListener(new MenuClickListener(0));
 
         SubMenu menuView2 = new SubMenu(context);
         menuView2.setImageResource(R.mipmap.suspend_2);
         menuView2.setText("福利");
+        menuView2.setOnClickListener(new MenuClickListener(1));
 
         SubMenu menuView3 = new SubMenu(context);
         menuView3.setImageResource(R.mipmap.suspend_3);
         menuView3.setText("录屏");
+        menuView3.setOnClickListener(new MenuClickListener(2));
 
         SubMenu menuView4 = new SubMenu(context);
         menuView4.setImageResource(R.mipmap.suspend_4);
         menuView4.setText("设置");
+        menuView4.setOnClickListener(new MenuClickListener(3));
 
         mMenuViews.add(menuView);
         mMenuViews.add(menuView2);
@@ -69,17 +75,6 @@ public class MenuGroup extends ViewGroup{
         addView(menuView2);
         addView(menuView3);
         addView(menuView4);
-
-//        imageMain.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(isShowing()){
-//                    hiddenMenu();
-//                }else {
-//                    showMenu();
-//                }
-//            }
-//        });
     }
 
     @Override
@@ -109,113 +104,94 @@ public class MenuGroup extends ViewGroup{
             int top = centerY-height/2;
             int bottom = centerY+height/2;
 
+            //设置主menu默认位置在视图的中心点位置
             imageMain.layout(left,top,right,bottom);
 
+            //设置子菜单默认位置在视图的中心点位置
             for(SubMenu imageView:mMenuViews){
                 int w = imageView.getMeasuredWidth();
                 int h = imageView.getMeasuredHeight();
-                imageView.layout(0,0,w,h);
+                int cx = (r-l)/2;
+                int cy = (b-t)/2;
+
+                imageView.layout(cx-w/2,cy-h/2,cx+w/2,cy+h/2);
                 imageView.setVisibility(View.GONE);
             }
-
-//            for(SubMenu imageView:mMenuViews){
-//                int w = imageView.getMeasuredWidth();
-//                int h = imageView.getMeasuredHeight();
-//                int cx = (r-l)/2;
-//                int cy = (b-t)/2;
-//
-//                imageView.layout(cx-w/2,cy-h/2,cx+w/2,cy+h/2);
-//                imageView.setVisibility(View.GONE);
-//            }
         }
     }
 
-    /**
-     * 必须返回true，不然会传递到父View的onTouch
-     * @param event
-     * @return
-     */
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return true;
-    }
-
     public void showMenu() {
-        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth())/2;
-        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight())/2;
         //左边
         if(direction == Direction.LEFT){
             int[] angles = {85,30,-30,-85};
-            showMenu(angles,startX,startY,moveDistanse);
+            showMenu(angles,moveDistanse);
             //上边
         }else if(direction == Direction.TOP){
             int[] angles = {-5,-60,-120,-175};
-            showMenu(angles,startX,startY,moveDistanse);
+            showMenu(angles,moveDistanse);
             //右边
         }else if(direction == Direction.RIGHT){
             int[] angles = {-95,-150,150,95};
-            showMenu(angles,startX,startY,moveDistanse);
+            showMenu(angles,moveDistanse);
             //下边
         }else if(direction == Direction.BOTTOM){
             int[] angles = {175,120,60,5};
-            showMenu(angles,startX,startY,moveDistanse);
+            showMenu(angles,moveDistanse);
         }else{
             Log.e(TAG,"没有显示成功");
         }
     }
 
     public void hiddenMenu() {
-        float startX = imageMain.getX()-(mMenuViews.get(0).getMeasuredWidth()-imageMain.getMeasuredWidth())/2;
-        float startY = imageMain.getY()-(mMenuViews.get(0).getMeasuredHeight()-imageMain.getMeasuredHeight())/2;
         //左边
         if(direction == Direction.LEFT){
-            int[] angles = {70,30,-30,-70};
-            hiddenMenu(angles,startX,startY,moveDistanse);
+            int[] angles = {85,30,-30,-85};
+            hiddenMenu(angles,moveDistanse);
             //上边
         }else if(direction == Direction.TOP){
-            int[] angles = {-20,-60,-120,-160};
-            hiddenMenu(angles,startX,startY,moveDistanse);
+            int[] angles = {-5,-60,-120,-175};
+            hiddenMenu(angles,moveDistanse);
             //右边
         }else if(direction == Direction.RIGHT){
-            int[] angles = {-110,-150,150,110};
-            hiddenMenu(angles,startX,startY,moveDistanse);
+            int[] angles = {-95,-150,150,95};
+            hiddenMenu(angles,moveDistanse);
             //下边
         }else if(direction == Direction.BOTTOM){
             int[] angles = {160,120,60,20};
-            hiddenMenu(angles,startX,startY,moveDistanse);
+            hiddenMenu(angles,moveDistanse);
         }else{
             Log.e(TAG,"没有隐藏成功");
         }
     }
 
-    private void showMenu(int[] angles,float startX,float startY,float moveDistanse){
+    private void showMenu(int[] angles,float moveDistanse){
         float endX;
         float endY;
         for(int i=0;i<mMenuViews.size();i++){
             SubMenu iv = mMenuViews.get(i);
-            endX = startX+moveDistanse*sin(90-angles[i])/sin(90) ;
-            endY = startY-moveDistanse*sin(angles[i])/sin(90) ;
-            showMenu(iv,startX,startY,endX,endY);
+            endX = moveDistanse*sin(90-angles[i])/sin(90) ;
+            endY = -moveDistanse*sin(angles[i])/sin(90) ;
+            showMenu(iv,endX,endY);
         }
     }
 
-    private void hiddenMenu(int[] angles,float startX,float startY,float moveDistanse){
-        float endX;
-        float endY;
+    private void hiddenMenu(int[] angles,float moveDistanse){
+        float startX;
+        float startY;
         for(int i=0;i<mMenuViews.size();i++){
             SubMenu iv = mMenuViews.get(i);
-            endX = startX+moveDistanse*sin(90-angles[i])/sin(90) ;
-            endY = startY-moveDistanse*sin(angles[i])/sin(90) ;
-            hiddenMenu(iv,endX,endY,startX,startY);
+            startX = moveDistanse*sin(90-angles[i])/sin(90) ;
+            startY = -moveDistanse*sin(angles[i])/sin(90) ;
+            hiddenMenu(iv,startX,startY);
         }
     }
 
-    private void showMenu(SubMenu imageView,float startX,float startY,float endX,float endY) {
-        doMoving(imageView,startX,startY,endX,endY,true);
+    private void showMenu(SubMenu imageView,float endX,float endY) {
+        doMoving(imageView,0,0,endX,endY,true);
     }
 
-    private void hiddenMenu(SubMenu imageView,float startX,float startY,float endX,float endY){
-        doMoving(imageView,startX,startY,endX,endY,false);
+    private void hiddenMenu(SubMenu imageView,float startX,float startY){
+        doMoving(imageView,startX,startY,0,0,false);
     }
 
     private void doMoving(final SubMenu imageView,float startX,float startY,float endX,float endY,final boolean isShowMenu) {
@@ -265,4 +241,26 @@ public class MenuGroup extends ViewGroup{
         return mMenuViews.get(0).getVisibility()==View.VISIBLE;
     }
 
+    private class MenuClickListener implements OnClickListener {
+        private int position;
+
+        public MenuClickListener(int position) {
+            this.position = position;
+        }
+
+        @Override
+        public void onClick(View v) {
+            if(mOnMenuItemClickListener!=null){
+                mOnMenuItemClickListener.onItemClick(position);
+            }
+        }
+    }
+
+    public void setMenuItemClickListener(OnMenuItemClickListener pListener){
+        mOnMenuItemClickListener = pListener;
+    }
+
+    public interface OnMenuItemClickListener{
+        void onItemClick(int position);
+    }
 }
